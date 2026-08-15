@@ -32,7 +32,7 @@ export default async function BillingPage() {
         <div className="glass-panel p-6 rounded-3xl">
           <h3 className="text-lg font-bold mb-4">Riwayat Transaksi</h3>
           <div className="space-y-3">
-            {history.map(item => (
+            {history.map((item: { id: string; tier: string; createdAt: Date; amount: number; status: string }) => (
               <div key={item.id} className="p-3 rounded-xl neu-pressed flex justify-between items-center">
                 <div>
                   <p className="font-bold text-sm">{item.tier}</p>

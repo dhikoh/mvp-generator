@@ -51,10 +51,18 @@ export async function PUT(req: Request) {
           data: { status: 'APPROVED' }
         });
 
+        const tierToRole: Record<string, Role> = {
+          STANDARD: 'USER_STANDARD',
+          PRO: 'USER_PRO',
+          ULTRA: 'USER_ULTRA',
+        };
+        const newRole = tierToRole[payment.tier];
+        if (!newRole) throw new Error(`Unknown tier: ${payment.tier}`);
+
         await tx.user.update({
           where: { id: payment.userId },
           data: {
-            role: payment.tier as Role,
+            role: newRole,
             billingActiveUntil: activeUntil
           }
         });

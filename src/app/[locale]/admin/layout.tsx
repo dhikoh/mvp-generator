@@ -35,9 +35,7 @@ export default async function AdminLayout({
           <Link href={`/${locale}/admin/payments`} className="block px-4 py-3 rounded-xl hover:neu-pressed smooth-transition font-medium text-sm text-[var(--text-secondary)] hover:text-[var(--text-primary)]">
             💳 Verifikasi Pembayaran
           </Link>
-          <Link href={`/${locale}/admin/prompts`} className="block px-4 py-3 rounded-xl hover:neu-pressed smooth-transition font-medium text-sm text-[var(--text-secondary)] hover:text-[var(--text-primary)]">
-            🤖 Direktori Prompt
-          </Link>
+
           <Link href={`/${locale}/admin/settings`} className="block px-4 py-3 rounded-xl hover:neu-pressed smooth-transition font-medium text-sm text-[var(--text-secondary)] hover:text-[var(--text-primary)]">
             ⚙️ CMS & Setting
           </Link>

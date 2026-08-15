@@ -64,7 +64,7 @@ export default async function AdminOverview() {
               </tr>
             </thead>
             <tbody>
-              {recentRegistrations.map(user => (
+              {recentRegistrations.map((user: { id: string; name: string; role: string; createdAt: Date }) => (
                 <tr key={user.id} className="border-b border-gray-200/20 last:border-0 hover:bg-black/5 transition">
                   <td className="py-3 px-2 text-sm">{user.name}</td>
                   <td className="py-3 px-2 text-sm">

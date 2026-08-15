@@ -1,17 +1,13 @@
-import withPWAInit from "next-pwa";
 import createNextIntlPlugin from 'next-intl/plugin';
+import type { NextConfig } from 'next';
 
 const withNextIntl = createNextIntlPlugin('./src/i18n.ts');
 
-const withPWA = withPWAInit({
-  dest: "public",
-  disable: process.env.NODE_ENV === "development",
-});
-
-const nextConfig = {
+const nextConfig: NextConfig = {
   reactStrictMode: true,
   turbopack: {},
+  output: 'standalone',
   // Add i18n or other configs if necessary
 };
 
-export default withNextIntl(withPWA(nextConfig));
+export default withNextIntl(nextConfig);

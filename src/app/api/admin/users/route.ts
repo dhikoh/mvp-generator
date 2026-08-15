@@ -26,6 +26,10 @@ export async function PUT(req: Request) {
     }
 
     if (action === 'UPDATE_ROLE') {
+      const validRoles = ['SUPERADMIN', 'USER_DEMO', 'USER_STANDARD', 'USER_PRO', 'USER_ULTRA'];
+      if (!validRoles.includes(role)) {
+        return NextResponse.json({ error: 'Role tidak valid' }, { status: 400 });
+      }
       await prisma.user.update({
         where: { id: userId },
         data: { role: role as Role }

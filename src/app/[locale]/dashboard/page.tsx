@@ -37,7 +37,7 @@ export default async function DashboardOverview({ params }: { params: Promise<{ 
   if (user.role === 'USER_ULTRA' || user.role === 'SUPERADMIN') maxChannels = 10;
 
   // Calculate total generates
-  const totalGenerates = user.channels.reduce((sum, channel) => sum + channel.usageCount, 0);
+  const totalGenerates = user.channels.reduce((sum: number, channel: { usageCount: number }) => sum + channel.usageCount, 0);
 
   return (
     <div className="space-y-6 pb-6">
