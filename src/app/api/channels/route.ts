@@ -88,3 +88,55 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }
+
+export async function PUT(req: Request) {
+  try {
+    const session = await getServerSession(authOptions);
+    if (!session) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    const data = await req.json();
+
+    if (!data.id) {
+      return NextResponse.json({ error: 'Channel ID wajib diisi' }, { status: 400 });
+    }
+
+    // Verify channel ownership
+    const channel = await prisma.profileChannel.findUnique({
+      where: { id: data.id }
+    });
+
+    if (!channel || channel.userId !== session.user.id) {
+      return NextResponse.json({ error: 'Channel tidak ditemukan atau bukan milik Anda' }, { status: 403 });
+    }
+
+    if (data.channelName && (typeof data.channelName !== 'string' || data.channelName.length > 50)) {
+      return NextResponse.json({ error: 'Nama Channel maksimal 50 karakter' }, { status: 400 });
+    }
+    if (data.niche && (typeof data.niche !== 'string' || data.niche.length > 100)) {
+      return NextResponse.json({ error: 'Niche maksimal 100 karakter' }, { status: 400 });
+    }
+    if (data.description && (typeof data.description !== 'string' || data.description.length > 500)) {
+      return NextResponse.json({ error: 'Deskripsi maksimal 500 karakter' }, { status: 400 });
+    }
+
+    const updatedChannel = await prisma.profileChannel.update({
+      where: { id: data.id },
+      data: {
+        channelName: data.channelName || channel.channelName,
+        niche: data.niche ?? channel.niche,
+        description: data.description ?? channel.description,
+        visualAesthetic: data.visualAesthetic ?? channel.visualAesthetic,
+        audioBGM: data.audioBGM ?? channel.audioBGM,
+        audioSFX: data.audioSFX ?? channel.audioSFX,
+        audioVO: data.audioVO ?? channel.audioVO
+      }
+    });
+
+    return NextResponse.json({ success: true, channel: updatedChannel }, { status: 200 });
+  } catch (error: any) {
+    console.error('Channel Edit Error:', error);
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+  }
+}

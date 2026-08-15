@@ -1,13 +1,15 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 
 export default function ChannelManagerClient({ initialChannels: channels }: { initialChannels: any[] }) {
   const router = useRouter();
+  
+  // Channel Modal State
   const [showModal, setShowModal] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  
+  const [editChannelId, setEditChannelId] = useState<string | null>(null);
   const [form, setForm] = useState({
     channelName: '',
     niche: '',
@@ -15,7 +17,31 @@ export default function ChannelManagerClient({ initialChannels: channels }: { in
     visualAesthetic: 'realistis'
   });
 
-  const handleAddChannel = async (e: React.FormEvent) => {
+  // Product Catalog Modal State
+  const [showProductModal, setShowProductModal] = useState(false);
+  const [activeChannelId, setActiveChannelId] = useState<string | null>(null);
+  const [products, setProducts] = useState<any[]>([]);
+  const [isLoadingProducts, setIsLoadingProducts] = useState(false);
+  const [productForm, setProductForm] = useState({ name: '', description: '', price: '', link: '' });
+
+  const handleOpenAddChannel = () => {
+    setEditChannelId(null);
+    setForm({ channelName: '', niche: '', description: '', visualAesthetic: 'realistis' });
+    setShowModal(true);
+  };
+
+  const handleOpenEditChannel = (channel: any) => {
+    setEditChannelId(channel.id);
+    setForm({
+      channelName: channel.channelName,
+      niche: channel.niche || '',
+      description: channel.description || '',
+      visualAesthetic: channel.visualAesthetic || 'realistis'
+    });
+    setShowModal(true);
+  };
+
+  const handleSaveChannel = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!form.channelName) {
       alert("Nama channel wajib diisi");
@@ -24,20 +50,74 @@ export default function ChannelManagerClient({ initialChannels: channels }: { in
 
     setIsSubmitting(true);
     try {
-      const res = await fetch('/api/channels', {
-        method: 'POST',
+      const url = '/api/channels';
+      const method = editChannelId ? 'PUT' : 'POST';
+      const body = editChannelId ? { ...form, id: editChannelId } : form;
+
+      const res = await fetch(url, {
+        method,
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(form)
+        body: JSON.stringify(body)
       });
 
       if (res.ok) {
-        alert("Channel berhasil ditambahkan!");
+        alert(`Channel berhasil ${editChannelId ? 'diperbarui' : 'ditambahkan'}!`);
         setShowModal(false);
         setForm({ channelName: '', niche: '', description: '', visualAesthetic: 'realistis' });
-        router.refresh(); // This will fetch fresh initialChannels from server
+        setEditChannelId(null);
+        router.refresh();
       } else {
         const err = await res.json();
-        alert(err.error || "Gagal menambahkan channel");
+        alert(err.error || `Gagal ${editChannelId ? 'memperbarui' : 'menambahkan'} channel`);
+      }
+    } catch (error) {
+      alert("Terjadi kesalahan sistem");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleOpenCatalog = async (channelId: string) => {
+    setActiveChannelId(channelId);
+    setShowProductModal(true);
+    setIsLoadingProducts(true);
+    try {
+      const res = await fetch(`/api/products?channelId=${channelId}`);
+      if (res.ok) {
+        const data = await res.json();
+        setProducts(data.products || []);
+      } else {
+        alert("Gagal mengambil data katalog produk");
+      }
+    } catch (err) {
+      alert("Terjadi kesalahan");
+    } finally {
+      setIsLoadingProducts(false);
+    }
+  };
+
+  const handleAddProduct = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!productForm.name || !productForm.price) {
+      alert("Nama dan Harga produk wajib diisi");
+      return;
+    }
+
+    setIsSubmitting(true);
+    try {
+      const res = await fetch('/api/products', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ...productForm, channelId: activeChannelId })
+      });
+
+      if (res.ok) {
+        const data = await res.json();
+        setProducts([data.product, ...products]);
+        setProductForm({ name: '', description: '', price: '', link: '' });
+      } else {
+        const err = await res.json();
+        alert(err.error || "Gagal menambahkan produk");
       }
     } catch (error) {
       alert("Terjadi kesalahan sistem");
@@ -54,7 +134,7 @@ export default function ChannelManagerClient({ initialChannels: channels }: { in
           <p className="text-sm text-[var(--text-secondary)]">Atur niche, gaya visual, dan katalog produk promosi Anda.</p>
         </div>
         <button 
-          onClick={() => setShowModal(true)}
+          onClick={handleOpenAddChannel}
           className="px-4 py-2 bg-[var(--accent)] text-white text-sm font-semibold rounded-xl shadow-lg neu-flat hover:opacity-90 transition"
         >
           + Tambah Channel
@@ -88,11 +168,11 @@ export default function ChannelManagerClient({ initialChannels: channels }: { in
             </div>
 
             <div className="mt-6 flex space-x-2">
-              <button disabled={channel.isLocked} onClick={() => alert("Fitur edit akan segera hadir!")} className="flex-1 py-2 bg-transparent border border-[var(--accent)] text-[var(--accent)] text-sm rounded-xl font-medium hover:bg-[var(--accent)] hover:text-white transition disabled:opacity-50 disabled:cursor-not-allowed">
-                Edit (Segera)
+              <button disabled={channel.isLocked} onClick={() => handleOpenEditChannel(channel)} className="flex-1 py-2 bg-transparent border border-[var(--accent)] text-[var(--accent)] text-sm rounded-xl font-medium hover:bg-[var(--accent)] hover:text-white transition disabled:opacity-50 disabled:cursor-not-allowed">
+                Edit
               </button>
-              <button disabled={channel.isLocked} onClick={() => alert("Katalog produk akan segera hadir!")} className="flex-1 py-2 bg-transparent border border-[var(--text-secondary)] text-[var(--text-secondary)] text-sm rounded-xl font-medium hover:bg-[var(--text-secondary)] hover:text-white transition disabled:opacity-50 disabled:cursor-not-allowed">
-                Katalog Produk (Segera)
+              <button disabled={channel.isLocked} onClick={() => handleOpenCatalog(channel.id)} className="flex-1 py-2 bg-transparent border border-[var(--text-secondary)] text-[var(--text-secondary)] text-sm rounded-xl font-medium hover:bg-[var(--text-secondary)] hover:text-white transition disabled:opacity-50 disabled:cursor-not-allowed">
+                Katalog Produk
               </button>
             </div>
           </div>
@@ -102,8 +182,8 @@ export default function ChannelManagerClient({ initialChannels: channels }: { in
       {showModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
           <div className="glass-panel w-full max-w-md p-6 rounded-2xl relative">
-            <h3 className="text-xl font-bold mb-4">Tambah Channel Baru</h3>
-            <form onSubmit={handleAddChannel} className="space-y-4">
+            <h3 className="text-xl font-bold mb-4">{editChannelId ? 'Edit Channel' : 'Tambah Channel Baru'}</h3>
+            <form onSubmit={handleSaveChannel} className="space-y-4">
               <div>
                 <label className="block text-xs font-medium mb-1">Nama Channel *</label>
                 <input 
@@ -158,10 +238,94 @@ export default function ChannelManagerClient({ initialChannels: channels }: { in
                   disabled={isSubmitting}
                   className="px-4 py-2 rounded-xl neu-flat bg-[var(--accent)] text-white font-semibold text-sm disabled:opacity-50"
                 >
-                  {isSubmitting ? 'Menyimpan...' : 'Simpan Channel'}
+                  {isSubmitting ? 'Menyimpan...' : 'Simpan'}
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {showProductModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+          <div className="glass-panel w-full max-w-2xl p-6 rounded-2xl relative max-h-[90vh] overflow-y-auto">
+            <h3 className="text-xl font-bold mb-4">Katalog Produk</h3>
+            
+            <div className="mb-6 p-4 neu-flat rounded-xl">
+              <h4 className="text-sm font-bold mb-3">Tambah Produk Baru</h4>
+              <form onSubmit={handleAddProduct} className="space-y-3">
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-[10px] font-medium mb-1">Nama Produk *</label>
+                    <input 
+                      type="text" required value={productForm.name} onChange={e => setProductForm({...productForm, name: e.target.value})}
+                      className="w-full p-2 rounded-lg neu-pressed text-xs bg-transparent" 
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-[10px] font-medium mb-1">Harga (Rp) *</label>
+                    <input 
+                      type="number" required value={productForm.price} onChange={e => setProductForm({...productForm, price: e.target.value})}
+                      className="w-full p-2 rounded-lg neu-pressed text-xs bg-transparent" 
+                    />
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-[10px] font-medium mb-1">Deskripsi Singkat</label>
+                    <input 
+                      type="text" value={productForm.description} onChange={e => setProductForm({...productForm, description: e.target.value})}
+                      className="w-full p-2 rounded-lg neu-pressed text-xs bg-transparent" 
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-[10px] font-medium mb-1">Link Pembelian (Opsional)</label>
+                    <input 
+                      type="url" value={productForm.link} onChange={e => setProductForm({...productForm, link: e.target.value})}
+                      className="w-full p-2 rounded-lg neu-pressed text-xs bg-transparent" 
+                    />
+                  </div>
+                </div>
+                <div className="flex justify-end pt-2">
+                  <button type="submit" disabled={isSubmitting} className="px-4 py-2 bg-[var(--accent)] text-white text-xs font-bold rounded-lg disabled:opacity-50">
+                    + Tambah
+                  </button>
+                </div>
+              </form>
+            </div>
+
+            <div className="space-y-3">
+              <h4 className="text-sm font-bold">Daftar Produk ({products.length})</h4>
+              {isLoadingProducts ? (
+                <p className="text-xs text-center p-4">Memuat data produk...</p>
+              ) : products.length === 0 ? (
+                <p className="text-xs text-center p-4 text-[var(--text-secondary)]">Belum ada produk di katalog ini.</p>
+              ) : (
+                products.map(p => (
+                  <div key={p.id} className="neu-flat p-3 rounded-xl flex justify-between items-center">
+                    <div>
+                      <p className="text-sm font-bold">{p.name}</p>
+                      <p className="text-[10px] text-[var(--text-secondary)]">{p.description}</p>
+                      <p className="text-xs font-semibold text-[var(--accent)] mt-1">Rp {p.price.toLocaleString('id-ID')}</p>
+                    </div>
+                    {p.link && (
+                      <a href={p.link} target="_blank" rel="noopener noreferrer" className="px-3 py-1 bg-transparent border border-[var(--text-secondary)] text-[var(--text-secondary)] text-[10px] rounded-lg">
+                        Buka Link
+                      </a>
+                    )}
+                  </div>
+                ))
+              )}
+            </div>
+
+            <div className="mt-6 flex justify-end">
+              <button 
+                onClick={() => setShowProductModal(false)}
+                className="px-4 py-2 rounded-xl neu-flat bg-[var(--text-secondary)] text-white font-semibold text-sm"
+              >
+                Tutup
+              </button>
+            </div>
           </div>
         </div>
       )}
