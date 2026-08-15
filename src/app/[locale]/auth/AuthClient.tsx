@@ -1,12 +1,14 @@
 "use client";
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Eye, EyeOff } from 'lucide-react';
 import { signIn } from 'next-auth/react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 
 export default function AuthClient() {
-  const [tab, setTab] = useState<'login' | 'register'>('login');
+  const searchParams = useSearchParams();
+  const defaultTab = searchParams.get('tab') === 'register' ? 'register' : 'login';
+  const [tab, setTab] = useState<'login' | 'register'>(defaultTab);
   const [showPassword, setShowPassword] = useState(false);
   const router = useRouter();
 

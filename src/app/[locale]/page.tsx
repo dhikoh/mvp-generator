@@ -26,13 +26,13 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
 
         <div className="flex flex-col sm:flex-row justify-center items-center gap-4">
           <Link 
-            href={`/${locale}/auth/register`} 
+            href={`/${locale}/auth?tab=register`} 
             className="w-full sm:w-auto px-8 py-4 bg-[var(--accent)] text-white font-bold rounded-2xl shadow-lg neu-flat hover:opacity-90 active:scale-95 transition"
           >
             Mulai Sekarang ⚡
           </Link>
           <Link 
-            href={`/${locale}/auth/login`} 
+            href={`/${locale}/auth?tab=login`} 
             className="w-full sm:w-auto px-8 py-4 bg-transparent border border-[var(--text-secondary)] text-[var(--text-secondary)] font-bold rounded-2xl hover:bg-[var(--text-secondary)] hover:text-white transition active:scale-95"
           >
             Masuk ke Akun
