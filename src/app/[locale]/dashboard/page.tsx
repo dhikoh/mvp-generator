@@ -26,7 +26,7 @@ export default async function DashboardOverview({ params }: { params: Promise<{ 
   if (!user) return null;
 
   // Real-time check
-  const isActive = user.role !== 'USER_DEMO' && user.billingActiveUntil && new Date(user.billingActiveUntil) > new Date();
+  const isActive = user.billingActiveUntil && new Date(user.billingActiveUntil) > new Date();
   const daysRemaining = isActive 
     ? Math.ceil((new Date(user.billingActiveUntil!).getTime() - Date.now()) / (1000 * 3600 * 24))
     : 0;

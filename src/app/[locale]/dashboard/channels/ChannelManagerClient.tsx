@@ -88,11 +88,11 @@ export default function ChannelManagerClient({ initialChannels: channels }: { in
             </div>
 
             <div className="mt-6 flex space-x-2">
-              <button disabled={channel.isLocked} className="flex-1 py-2 bg-transparent border border-[var(--accent)] text-[var(--accent)] text-sm rounded-xl font-medium hover:bg-[var(--accent)] hover:text-white transition disabled:opacity-50 disabled:cursor-not-allowed">
-                Edit
+              <button disabled={channel.isLocked} onClick={() => alert("Fitur edit akan segera hadir!")} className="flex-1 py-2 bg-transparent border border-[var(--accent)] text-[var(--accent)] text-sm rounded-xl font-medium hover:bg-[var(--accent)] hover:text-white transition disabled:opacity-50 disabled:cursor-not-allowed">
+                Edit (Segera)
               </button>
-              <button disabled={channel.isLocked} className="flex-1 py-2 bg-transparent border border-[var(--text-secondary)] text-[var(--text-secondary)] text-sm rounded-xl font-medium hover:bg-[var(--text-secondary)] hover:text-white transition disabled:opacity-50 disabled:cursor-not-allowed">
-                Katalog Produk
+              <button disabled={channel.isLocked} onClick={() => alert("Katalog produk akan segera hadir!")} className="flex-1 py-2 bg-transparent border border-[var(--text-secondary)] text-[var(--text-secondary)] text-sm rounded-xl font-medium hover:bg-[var(--text-secondary)] hover:text-white transition disabled:opacity-50 disabled:cursor-not-allowed">
+                Katalog Produk (Segera)
               </button>
             </div>
           </div>

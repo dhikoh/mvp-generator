@@ -29,6 +29,10 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Data pembayaran tidak lengkap' }, { status: 400 });
     }
 
+    if (!['USER_STANDARD', 'USER_PRO', 'USER_ULTRA'].includes(tier)) {
+      return NextResponse.json({ error: 'Tier tidak valid' }, { status: 400 });
+    }
+
     // XSS PROTECTION: Validasi ketat format Base64 Image
     // Hanya menerima JPG dan PNG
     const base64Regex = /^data:image\/(jpeg|png|jpg);base64,([a-zA-Z0-9+/=]+)$/;

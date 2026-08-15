@@ -20,7 +20,7 @@ export default async function StudioPage({ params }: { params: Promise<{ locale:
 
   if (!user) return null;
 
-  const isActive = user.role !== 'USER_DEMO' && user.billingActiveUntil && new Date(user.billingActiveUntil) > new Date();
+  const isActive = user.billingActiveUntil && new Date(user.billingActiveUntil) > new Date();
 
   const channels = await prisma.profileChannel.findMany({
     where: { userId: session.user.id, isLocked: false }

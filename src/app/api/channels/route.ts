@@ -33,10 +33,16 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'User not found' }, { status: 404 });
     }
 
-    // Check tier limits
+    // Check tier limits based on role and active billing
     let maxChannels = 1;
-    if (user.role === 'USER_PRO') maxChannels = 3;
-    if (user.role === 'USER_ULTRA' || user.role === 'SUPERADMIN') maxChannels = 10;
+    const isBillingActive = user.billingActiveUntil && new Date(user.billingActiveUntil) > new Date();
+
+    if (user.role === 'SUPERADMIN') {
+      maxChannels = 10;
+    } else if (isBillingActive) {
+      if (user.role === 'USER_PRO') maxChannels = 3;
+      if (user.role === 'USER_ULTRA') maxChannels = 10;
+    }
 
     if (user._count.channels >= maxChannels) {
       return NextResponse.json(

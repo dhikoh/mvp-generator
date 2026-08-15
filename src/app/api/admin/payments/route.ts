@@ -3,6 +3,7 @@ import { PrismaClient, Role } from '@prisma/client';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/authOptions';
 
+import { enforceChannelLimits } from '@/lib/channelLockLogic';
 import prisma from "@/lib/prisma";
 
 export async function PUT(req: Request) {
@@ -51,22 +52,26 @@ export async function PUT(req: Request) {
           data: { status: 'APPROVED' }
         });
 
-        const tierToRole: Record<string, Role> = {
-          STANDARD: 'USER_STANDARD',
-          PRO: 'USER_PRO',
-          ULTRA: 'USER_ULTRA',
+        const tierToCredits: Record<string, number> = {
+          USER_STANDARD: 50,
+          USER_PRO: 200,
+          USER_ULTRA: 1000
         };
-        const newRole = tierToRole[payment.tier];
-        if (!newRole) throw new Error(`Unknown tier: ${payment.tier}`);
+
+        const addedCredits = tierToCredits[payment.tier] || 0;
 
         await tx.user.update({
           where: { id: payment.userId },
           data: {
-            role: newRole,
-            billingActiveUntil: activeUntil
+            role: payment.tier as Role,
+            billingActiveUntil: activeUntil,
+            creditBalance: { increment: addedCredits }
           }
         });
       });
+      
+      // Enforce channel limits after payment approval
+      await enforceChannelLimits(payment.userId);
     } else {
       // Just reject
       const result = await prisma.billingHistory.updateMany({

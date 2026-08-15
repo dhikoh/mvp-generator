@@ -17,9 +17,10 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Channel ID wajib diisi' }, { status: 400 });
     }
 
-    // Verify ownership
+    // Verify ownership and get user credits
     const channel = await prisma.profileChannel.findUnique({
-      where: { id: data.channelId }
+      where: { id: data.channelId },
+      include: { user: true }
     });
 
     if (!channel || channel.userId !== session.user.id) {
@@ -30,11 +31,25 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Channel terkunci' }, { status: 403 });
     }
 
-    await prisma.profileChannel.update({
-      where: { id: data.channelId },
-      data: {
-        usageCount: { increment: 1 },
-        lastUsedAt: new Date()
+    if (channel.user.role !== 'SUPERADMIN' && channel.user.creditBalance <= 0) {
+      return NextResponse.json({ error: 'Credit point Anda habis. Silakan top-up paket berlangganan.' }, { status: 403 });
+    }
+
+    // Execute transaction to ensure both updates succeed
+    await prisma.$transaction(async (tx) => {
+      await tx.profileChannel.update({
+        where: { id: data.channelId },
+        data: {
+          usageCount: { increment: 1 },
+          lastUsedAt: new Date()
+        }
+      });
+
+      if (channel.user.role !== 'SUPERADMIN') {
+        await tx.user.update({
+          where: { id: session.user.id },
+          data: { creditBalance: { decrement: 1 } }
+        });
       }
     });
 

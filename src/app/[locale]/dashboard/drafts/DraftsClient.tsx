@@ -110,7 +110,12 @@ export default function DraftsClient() {
                       <label className="block text-[10px] font-bold text-green-500 uppercase mb-1">🎤 Narasi / Voice Over ({scene.durasi_estimasi}s)</label>
                       <textarea 
                         rows={2} 
-                        defaultValue={scene.narasi} 
+                        value={scene.narasi} 
+                        onChange={(e) => {
+                          const newData = { ...parsedData };
+                          newData.scenes[index].narasi = e.target.value;
+                          setParsedData(newData);
+                        }}
                         className="w-full p-3 rounded-lg neu-pressed border-none outline-none text-sm bg-transparent font-medium"
                       />
                     </div>
@@ -120,8 +125,23 @@ export default function DraftsClient() {
             </div>
 
             <div className="flex justify-end pt-4 border-t border-[var(--text-secondary)] space-x-3">
-               <button className="px-4 py-2 bg-transparent border border-[var(--text-secondary)] text-[var(--text-secondary)] text-sm font-bold rounded-xl hover:bg-[var(--text-secondary)] hover:text-white transition">Reset</button>
-               <button className="px-4 py-2 bg-[var(--accent)] text-white text-sm font-bold rounded-xl shadow-lg neu-flat hover:opacity-90 active:scale-95">Salin Seluruh Teks Saja</button>
+               <button 
+                 onClick={() => { setParsedData(null); setJsonInput(''); }}
+                 className="px-4 py-2 bg-transparent border border-[var(--text-secondary)] text-[var(--text-secondary)] text-sm font-bold rounded-xl hover:bg-[var(--text-secondary)] hover:text-white transition"
+               >
+                 Reset
+               </button>
+               <button 
+                 onClick={() => {
+                   if (!parsedData) return;
+                   const allText = parsedData.scenes.map((s: any, i: number) => `Scene ${i+1}:\nVisual: ${s.visual}\nAudio: ${s.audio}\nNarasi: ${s.narasi}\n`).join('\n');
+                   navigator.clipboard.writeText(allText);
+                   alert('Seluruh teks berhasil disalin!');
+                 }}
+                 className="px-4 py-2 bg-[var(--accent)] text-white text-sm font-bold rounded-xl shadow-lg neu-flat hover:opacity-90 active:scale-95"
+               >
+                 Salin Seluruh Teks Saja
+               </button>
             </div>
 
           </div>

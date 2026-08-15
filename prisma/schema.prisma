@@ -17,11 +17,13 @@ model User {
   dateOfBirth   DateTime?
   role          Role      @default(USER_DEMO)
   billingActiveUntil DateTime?
+  creditBalance Int       @default(0)
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
 
   channels      ProfileChannel[]
   billings      BillingHistory[]
+  drafts        Draft[]
 }
 
 enum Role {
@@ -59,7 +61,7 @@ model BillingHistory {
   userId         String
   user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   amount         Int
-  tier           String   // e.g. "STANDARD", "PRO", "ULTRA"
+  tier           String   // e.g. "USER_STANDARD", "USER_PRO", "USER_ULTRA"
   proofUrl       String?
   status         PaymentStatus @default(PENDING)
   createdAt      DateTime @default(now())
@@ -70,3 +72,14 @@ enum PaymentStatus {
   APPROVED
   REJECTED
 }
+
+model Draft {
+  id             String   @id @default(cuid())
+  userId         String
+  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  content        String   @db.Text
+  parsedData     Json?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+}
+
