@@ -1,9 +1,9 @@
 import Link from 'next/link';
-import { useTranslations } from 'next-intl';
+import { getTranslations } from 'next-intl/server';
 
 export default async function HomePage({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = await params;
-  const t = useTranslations('Index');
+  const t = await getTranslations('Index');
 
   return (
     <div className="min-h-screen bg-[var(--bg-color)] flex flex-col items-center justify-center relative overflow-hidden p-6">
