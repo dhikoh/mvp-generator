@@ -8,7 +8,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 export default function AuthClient() {
   const searchParams = useSearchParams();
   const defaultTab = searchParams.get('tab') === 'register' ? 'register' : 'login';
-  const [tab, setTab] = useState<'login' | 'register'>(defaultTab);
+  const [tab, setTab] = useState<'login' | 'register' | 'forgot-password'>(defaultTab as any);
   const [showPassword, setShowPassword] = useState(false);
   const router = useRouter();
 
@@ -48,6 +48,15 @@ export default function AuthClient() {
     }
   };
 
+  const handleForgotPassword = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!identifier) {
+      setError('Silakan masukkan email atau username Anda terlebih dahulu.');
+      return;
+    }
+    setStep(4); // 4: Forgot Password Success
+  };
+
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
     if (regForm.password !== regForm.confirmPassword) {
@@ -83,7 +92,7 @@ export default function AuthClient() {
   return (
     <div className="min-h-screen flex items-center justify-center p-4">
       <div className="w-full max-w-md glass-panel p-6 sm:p-8 smooth-transition">
-        {step !== 3 && (
+        {step !== 3 && step !== 4 && (
           <div className="flex justify-center mb-6 space-x-4">
             <button
               onClick={() => { setTab('login'); setStep(1); }}
@@ -92,7 +101,7 @@ export default function AuthClient() {
               Login
             </button>
             <button
-              onClick={() => setTab('register')}
+              onClick={() => { setTab('register'); setStep(1); }}
               className={`pb-2 px-4 font-semibold ${tab === 'register' ? 'border-b-2 border-[var(--accent)] text-[var(--accent)]' : 'text-[var(--text-secondary)]'}`}
             >
               Register
@@ -111,6 +120,7 @@ export default function AuthClient() {
                 value={identifier}
                 onChange={e => setIdentifier(e.target.value)}
                 required
+                autoComplete="username"
                 className="w-full p-3 rounded-xl neu-pressed border-none outline-none focus:ring-2 focus:ring-[var(--accent)] bg-transparent"
               />
             </div>
@@ -121,6 +131,7 @@ export default function AuthClient() {
                 value={loginPassword}
                 onChange={e => setLoginPassword(e.target.value)}
                 required
+                autoComplete="current-password"
                 className="w-full p-3 rounded-xl neu-pressed border-none outline-none focus:ring-2 focus:ring-[var(--accent)] bg-transparent pr-10"
               />
               <button 
@@ -136,7 +147,7 @@ export default function AuthClient() {
                 <input type="checkbox" checked={rememberMe} onChange={e => setRememberMe(e.target.checked)} className="rounded" />
                 <span>Ingat Saya</span>
               </label>
-              <a href="#" className="text-[var(--accent)] hover:underline">Lupa password?</a>
+              <button type="button" onClick={() => setTab('forgot-password')} className="text-[var(--accent)] hover:underline">Lupa password?</button>
             </div>
             <button 
               type="submit" 
@@ -149,24 +160,24 @@ export default function AuthClient() {
         )}
 
         {tab === 'register' && step === 1 && (
-          <form onSubmit={() => setStep(2)} className="space-y-4">
+          <form onSubmit={(e) => { e.preventDefault(); setStep(2); }} className="space-y-4">
             <h3 className="text-lg font-bold mb-2">Informasi Akun</h3>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
                 <label className="block text-xs font-medium mb-1">Nama Lengkap *</label>
-                <input type="text" required value={regForm.name} onChange={e => setRegForm({...regForm, name: e.target.value})} className="w-full p-2 rounded-xl neu-pressed border-none outline-none text-sm bg-transparent" />
+                <input type="text" required value={regForm.name} onChange={e => setRegForm({...regForm, name: e.target.value})} autoComplete="name" className="w-full p-2 rounded-xl neu-pressed border-none outline-none text-sm bg-transparent" />
               </div>
               <div>
                 <label className="block text-xs font-medium mb-1">Username *</label>
-                <input type="text" required value={regForm.username} onChange={e => setRegForm({...regForm, username: e.target.value})} className="w-full p-2 rounded-xl neu-pressed border-none outline-none text-sm bg-transparent" />
+                <input type="text" required value={regForm.username} onChange={e => setRegForm({...regForm, username: e.target.value})} autoComplete="username" className="w-full p-2 rounded-xl neu-pressed border-none outline-none text-sm bg-transparent" />
               </div>
               <div>
                 <label className="block text-xs font-medium mb-1">Email *</label>
-                <input type="email" required value={regForm.email} onChange={e => setRegForm({...regForm, email: e.target.value})} className="w-full p-2 rounded-xl neu-pressed border-none outline-none text-sm bg-transparent" />
+                <input type="email" required value={regForm.email} onChange={e => setRegForm({...regForm, email: e.target.value})} autoComplete="email" className="w-full p-2 rounded-xl neu-pressed border-none outline-none text-sm bg-transparent" />
               </div>
               <div>
                 <label className="block text-xs font-medium mb-1">No. HP *</label>
-                <input type="tel" required value={regForm.phoneNumber} onChange={e => setRegForm({...regForm, phoneNumber: e.target.value})} className="w-full p-2 rounded-xl neu-pressed border-none outline-none text-sm bg-transparent" />
+                <input type="tel" required value={regForm.phoneNumber} onChange={e => setRegForm({...regForm, phoneNumber: e.target.value})} autoComplete="tel" className="w-full p-2 rounded-xl neu-pressed border-none outline-none text-sm bg-transparent" />
               </div>
               <div className="sm:col-span-2">
                 <label className="block text-xs font-medium mb-1">Tanggal Lahir *</label>
@@ -174,11 +185,11 @@ export default function AuthClient() {
               </div>
               <div>
                 <label className="block text-xs font-medium mb-1">Password *</label>
-                <input type="password" required value={regForm.password} onChange={e => setRegForm({...regForm, password: e.target.value})} className="w-full p-2 rounded-xl neu-pressed border-none outline-none text-sm bg-transparent" />
+                <input type="password" required value={regForm.password} onChange={e => setRegForm({...regForm, password: e.target.value})} autoComplete="new-password" className="w-full p-2 rounded-xl neu-pressed border-none outline-none text-sm bg-transparent" />
               </div>
               <div>
                 <label className="block text-xs font-medium mb-1">Konfirmasi Password *</label>
-                <input type="password" required value={regForm.confirmPassword} onChange={e => setRegForm({...regForm, confirmPassword: e.target.value})} className="w-full p-2 rounded-xl neu-pressed border-none outline-none text-sm bg-transparent" />
+                <input type="password" required value={regForm.confirmPassword} onChange={e => setRegForm({...regForm, confirmPassword: e.target.value})} autoComplete="new-password" className="w-full p-2 rounded-xl neu-pressed border-none outline-none text-sm bg-transparent" />
               </div>
             </div>
             <button 
@@ -269,6 +280,62 @@ export default function AuthClient() {
             <button 
               onClick={() => { setStep(1); setTab('login'); }}
               className="text-[var(--accent)] text-sm hover:underline"
+            >
+              Kembali ke Login
+            </button>
+          </div>
+        )}
+
+        {tab === 'forgot-password' && step !== 4 && (
+          <form onSubmit={handleForgotPassword} className="space-y-4">
+            <h3 className="text-xl font-bold mb-2">Lupa Password</h3>
+            <p className="text-sm text-[var(--text-secondary)] mb-4">Masukkan email Anda. Kami akan memverifikasi dan menghubungkan Anda dengan Admin untuk proses reset.</p>
+            
+            <div>
+              <label className="block text-sm font-medium mb-1">Email / Username</label>
+              <input 
+                type="text" 
+                value={identifier}
+                onChange={e => setIdentifier(e.target.value)}
+                required
+                autoComplete="email"
+                className="w-full p-3 rounded-xl neu-pressed border-none outline-none focus:ring-2 focus:ring-[var(--accent)] bg-transparent"
+              />
+            </div>
+            
+            <button 
+              type="submit" 
+              className="w-full p-3 mt-4 rounded-xl neu-flat text-white bg-[var(--accent)] font-semibold hover:opacity-90 active:scale-95 smooth-transition"
+            >
+              Minta Reset Password
+            </button>
+            <button 
+              type="button"
+              onClick={() => setTab('login')}
+              className="w-full p-3 mt-2 rounded-xl neu-flat text-[var(--text-secondary)] bg-transparent font-semibold hover:opacity-90 active:scale-95 smooth-transition"
+            >
+              Kembali
+            </button>
+          </form>
+        )}
+
+        {step === 4 && (
+          <div className="text-center space-y-4 py-8">
+            <h2 className="text-2xl font-bold text-[var(--accent)]">Permintaan Dicatat</h2>
+            <p className="text-sm text-[var(--text-secondary)]">Untuk keamanan (Tahap MVP), silakan hubungi Admin dengan menekan tombol di bawah agar password Anda segera direset secara manual.</p>
+            <div className="p-4 rounded-xl neu-pressed bg-transparent mt-4">
+              <a 
+                href={`https://wa.me/6281234567890?text=Halo%20Admin,%20saya%20ingin%20mereset%20password%20untuk%20akun%20${identifier}.`} 
+                target="_blank" 
+                rel="noreferrer"
+                className="inline-block px-6 py-3 rounded-xl neu-flat text-white bg-green-500 font-semibold hover:opacity-90 active:scale-95 smooth-transition"
+              >
+                Chat WhatsApp Admin
+              </a>
+            </div>
+            <button 
+              onClick={() => { setStep(1); setTab('login'); }}
+              className="text-[var(--accent)] text-sm hover:underline mt-4 block mx-auto"
             >
               Kembali ke Login
             </button>

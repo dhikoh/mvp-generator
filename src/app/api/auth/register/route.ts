@@ -13,9 +13,24 @@ export async function POST(req: Request) {
       visualAesthetic, audioBGM, audioSFX, audioVO, socialLinks
     } = body;
 
-    // Basic validation
-    if (!name || !username || !email || !phoneNumber || !password || !dateOfBirth || !channelName || !niche || !description) {
-      return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
+    // Basic validation (strict checking for empty strings)
+    if (
+      !name?.trim() || 
+      !username?.trim() || 
+      !email?.trim() || 
+      !phoneNumber?.trim() || 
+      !password || 
+      !dateOfBirth || 
+      !channelName?.trim() || 
+      !description?.trim()
+    ) {
+      return NextResponse.json({ error: 'Data wajib tidak boleh kosong' }, { status: 400 });
+    }
+
+    // Validate date format
+    const dob = new Date(dateOfBirth);
+    if (isNaN(dob.getTime())) {
+      return NextResponse.json({ error: 'Format tanggal lahir tidak valid' }, { status: 400 });
     }
 
     // Check existing user
@@ -44,7 +59,7 @@ export async function POST(req: Request) {
           email,
           phoneNumber,
           passwordHash,
-          dateOfBirth: new Date(dateOfBirth),
+          dateOfBirth: dob,
           role: 'USER_DEMO',
           billingActiveUntil: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000) // 3 days free trial
         }
