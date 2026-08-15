@@ -57,13 +57,41 @@ export default function AuthClient() {
     setStep(4); // 4: Forgot Password Success
   };
 
-  const handleRegister = async (e: React.FormEvent) => {
+  const handleNextStep1 = async (e: React.FormEvent) => {
     e.preventDefault();
     if (regForm.password !== regForm.confirmPassword) {
       setError('Password tidak cocok');
       return;
     }
+    setLoading(true);
+    setError('');
     
+    try {
+      const res = await fetch('/api/auth/check', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          username: regForm.username,
+          email: regForm.email,
+          phoneNumber: regForm.phoneNumber
+        })
+      });
+      
+      const data = await res.json();
+      if (!res.ok) {
+        setError(data.error || 'Data sudah terdaftar');
+      } else {
+        setStep(2);
+      }
+    } catch (err) {
+      setError('Kesalahan jaringan saat memeriksa ketersediaan akun.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleRegister = async (e: React.FormEvent) => {
+    e.preventDefault();
     setLoading(true);
     setError('');
     
@@ -160,7 +188,7 @@ export default function AuthClient() {
         )}
 
         {tab === 'register' && step === 1 && (
-          <form onSubmit={(e) => { e.preventDefault(); setStep(2); }} className="space-y-4">
+          <form onSubmit={handleNextStep1} className="space-y-4">
             <h3 className="text-lg font-bold mb-2">Informasi Akun</h3>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
@@ -194,9 +222,10 @@ export default function AuthClient() {
             </div>
             <button 
               type="submit" 
+              disabled={loading}
               className="w-full p-3 mt-4 rounded-xl neu-flat text-white bg-[var(--accent)] font-semibold hover:opacity-90 active:scale-95 smooth-transition"
             >
-              Lanjutkan
+              {loading ? 'Memeriksa...' : 'Lanjutkan'}
             </button>
           </form>
         )}

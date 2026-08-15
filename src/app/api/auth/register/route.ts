@@ -37,15 +37,18 @@ export async function POST(req: Request) {
     const existingUser = await prisma.user.findFirst({
       where: {
         OR: [
-          { email },
-          { username },
+          { email: { equals: email, mode: 'insensitive' } },
+          { username: { equals: username, mode: 'insensitive' } },
           { phoneNumber }
         ]
       }
     });
 
     if (existingUser) {
-      return NextResponse.json({ error: 'Username, Email, or Phone Number already exists' }, { status: 409 });
+      if (existingUser.email.toLowerCase() === email.toLowerCase()) return NextResponse.json({ error: 'Email sudah terdaftar' }, { status: 409 });
+      if (existingUser.username.toLowerCase() === username.toLowerCase()) return NextResponse.json({ error: 'Username sudah terdaftar' }, { status: 409 });
+      if (existingUser.phoneNumber === phoneNumber) return NextResponse.json({ error: 'Nomor HP sudah terdaftar' }, { status: 409 });
+      return NextResponse.json({ error: 'Kredensial sudah terdaftar' }, { status: 409 });
     }
 
     const passwordHash = await bcrypt.hash(password, 10);
