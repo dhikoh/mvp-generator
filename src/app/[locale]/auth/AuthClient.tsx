@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { Eye, EyeOff } from 'lucide-react';
-import { signIn } from 'next-auth/react';
+import { signIn, getSession } from 'next-auth/react';
 import { useRouter, useSearchParams } from 'next/navigation';
 
 export default function AuthClient() {
@@ -44,7 +44,12 @@ export default function AuthClient() {
     if (res?.error) {
       setError('Kredensial tidak valid. Silakan periksa kembali.');
     } else {
-      router.push('/dashboard'); // or redirect based on role
+      const session = await getSession();
+      if (session?.user && (session.user as any).role === 'SUPERADMIN') {
+        router.push('/admin');
+      } else {
+        router.push('/dashboard');
+      }
     }
   };
 

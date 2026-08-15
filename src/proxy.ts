@@ -25,6 +25,9 @@ export default async function middleware(req: NextRequest) {
     const locale = localeMatch ? localeMatch[1] : 'id';
 
     if (token && isAuthRoute) {
+      if (token.role === 'SUPERADMIN') {
+        return NextResponse.redirect(new URL(`/${locale}/admin`, req.url));
+      }
       return NextResponse.redirect(new URL(`/${locale}/dashboard`, req.url));
     }
 
@@ -32,6 +35,10 @@ export default async function middleware(req: NextRequest) {
       const url = new URL(`/${locale}/auth`, req.url);
       url.searchParams.set('callbackUrl', encodeURI(req.url));
       return NextResponse.redirect(url);
+    }
+
+    if (token && isDashboardRoute && token.role === 'SUPERADMIN') {
+      return NextResponse.redirect(new URL(`/${locale}/admin`, req.url));
     }
 
     if (token && isAdminRoute && token.role !== 'SUPERADMIN') {
