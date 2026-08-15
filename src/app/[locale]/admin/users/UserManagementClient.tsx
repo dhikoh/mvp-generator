@@ -11,6 +11,7 @@ export default function UserManagementClient({ users }: { users: any[] }) {
   // State for forms
   const [newRole, setNewRole] = useState('');
   const [addDays, setAddDays] = useState<number | ''>('');
+  const [newCredits, setNewCredits] = useState<number | ''>('');
   const [newPassword, setNewPassword] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
 
@@ -20,7 +21,7 @@ export default function UserManagementClient({ users }: { users: any[] }) {
     u.username.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  const handleUpdate = async (action: 'UPDATE_ROLE' | 'ADD_DAYS' | 'RESET_PASSWORD') => {
+  const handleUpdate = async (action: 'UPDATE_ROLE' | 'ADD_DAYS' | 'RESET_PASSWORD' | 'SET_CREDITS') => {
     if (!selectedUser) return;
     
     setIsProcessing(true);
@@ -32,6 +33,9 @@ export default function UserManagementClient({ users }: { users: any[] }) {
     } else if (action === 'ADD_DAYS') {
       if (!addDays || addDays <= 0) { alert("Masukkan jumlah hari yang valid"); setIsProcessing(false); return; }
       payload.days = addDays;
+    } else if (action === 'SET_CREDITS') {
+      if (newCredits === '' || newCredits < 0) { alert("Masukkan jumlah kredit yang valid"); setIsProcessing(false); return; }
+      payload.credits = newCredits;
     } else if (action === 'RESET_PASSWORD') {
       if (!newPassword || newPassword.length < 6) { alert("Password minimal 6 karakter"); setIsProcessing(false); return; }
       payload.newPassword = newPassword;
@@ -48,6 +52,7 @@ export default function UserManagementClient({ users }: { users: any[] }) {
         alert("Berhasil memperbarui data user!");
         setNewRole('');
         setAddDays('');
+        setNewCredits('');
         setNewPassword('');
         setSelectedUser(null);
         router.refresh();
@@ -66,6 +71,7 @@ export default function UserManagementClient({ users }: { users: any[] }) {
     setSelectedUser(user);
     setNewRole(user.role);
     setAddDays('');
+    setNewCredits(user.creditBalance);
     setNewPassword('');
   };
 
@@ -87,6 +93,7 @@ export default function UserManagementClient({ users }: { users: any[] }) {
             <tr className="border-b border-[var(--text-secondary)] text-sm">
               <th className="pb-3 px-2">Info User</th>
               <th className="pb-3 px-2">Role/Tier</th>
+              <th className="pb-3 px-2">Credits</th>
               <th className="pb-3 px-2">Channels</th>
               <th className="pb-3 px-2">Masa Aktif</th>
               <th className="pb-3 px-2 text-right">Aksi</th>
@@ -110,6 +117,7 @@ export default function UserManagementClient({ users }: { users: any[] }) {
                     {user.role}
                   </span>
                 </td>
+                <td className="py-3 px-2 text-sm">{user.creditBalance}</td>
                 <td className="py-3 px-2 text-sm">{user._count.channels} Channel</td>
                 <td className="py-3 px-2 text-sm">
                   {user.billingActiveUntil ? new Date(user.billingActiveUntil).toLocaleDateString('id-ID') : '-'}
@@ -172,6 +180,20 @@ export default function UserManagementClient({ users }: { users: any[] }) {
                     className="flex-1 p-2 rounded-xl neu-pressed border-none outline-none text-sm bg-transparent" 
                   />
                   <button disabled={isProcessing || !addDays} onClick={() => handleUpdate('ADD_DAYS')} className="px-3 py-2 bg-[var(--accent)] text-white text-xs font-bold rounded-xl disabled:opacity-50">Tambah</button>
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <label className="block text-xs font-medium mb-1">Update Kuota / Credit AI</label>
+                <div className="flex space-x-2">
+                  <input 
+                    type="number" 
+                    value={newCredits === '' ? '' : newCredits}
+                    onChange={(e) => setNewCredits(e.target.value === '' ? '' : parseInt(e.target.value))}
+                    placeholder="Contoh: 100" 
+                    className="flex-1 p-2 rounded-xl neu-pressed border-none outline-none text-sm bg-transparent" 
+                  />
+                  <button disabled={isProcessing || newCredits === ''} onClick={() => handleUpdate('SET_CREDITS')} className="px-3 py-2 bg-[var(--accent)] text-white text-xs font-bold rounded-xl disabled:opacity-50">Update</button>
                 </div>
               </div>
 

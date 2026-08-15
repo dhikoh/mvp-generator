@@ -141,6 +141,7 @@ export default function AuthClient() {
 
         {tab === 'login' && step !== 3 && (
           <form onSubmit={handleLogin} className="space-y-4">
+            <fieldset disabled={loading} className="space-y-4">
             <div>
               <label className="block text-sm font-medium mb-1">Username / Email / No. HP</label>
               <input 
@@ -184,12 +185,14 @@ export default function AuthClient() {
             >
               {loading ? 'Memproses...' : 'Login'}
             </button>
+            </fieldset>
           </form>
         )}
 
         {tab === 'register' && step === 1 && (
           <form onSubmit={handleNextStep1} className="space-y-4">
-            <h3 className="text-lg font-bold mb-2">Informasi Akun</h3>
+            <fieldset disabled={loading} className="space-y-4">
+              <h3 className="text-lg font-bold mb-2">Informasi Akun</h3>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
                 <label className="block text-xs font-medium mb-1">Nama Lengkap *</label>
@@ -227,12 +230,14 @@ export default function AuthClient() {
             >
               {loading ? 'Memeriksa...' : 'Lanjutkan'}
             </button>
+            </fieldset>
           </form>
         )}
 
         {tab === 'register' && step === 2 && (
           <form onSubmit={handleRegister} className="space-y-4">
-            <h3 className="text-lg font-bold mb-2">Profile Channel (Wajib)</h3>
+            <fieldset disabled={loading} className="space-y-4">
+              <h3 className="text-lg font-bold mb-2">Profile Channel (Wajib)</h3>
             <div className="space-y-3 max-h-[60vh] overflow-y-auto pr-2 pb-4">
               <div>
                 <label className="block text-xs font-medium mb-1">Nama Channel *</label>
@@ -288,6 +293,7 @@ export default function AuthClient() {
                 {loading ? 'Memproses...' : 'Daftar Sekarang'}
               </button>
             </div>
+            </fieldset>
           </form>
         )}
 
@@ -317,7 +323,8 @@ export default function AuthClient() {
 
         {tab === 'forgot-password' && step !== 4 && (
           <form onSubmit={handleForgotPassword} className="space-y-4">
-            <h3 className="text-xl font-bold mb-2">Lupa Password</h3>
+            <fieldset disabled={loading} className="space-y-4">
+              <h3 className="text-xl font-bold mb-2">Lupa Password</h3>
             <p className="text-sm text-[var(--text-secondary)] mb-4">Masukkan email Anda. Kami akan memverifikasi dan menghubungkan Anda dengan Admin untuk proses reset.</p>
             
             <div>
@@ -345,6 +352,7 @@ export default function AuthClient() {
             >
               Kembali
             </button>
+            </fieldset>
           </form>
         )}
 

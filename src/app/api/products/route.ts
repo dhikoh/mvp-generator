@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/authOptions';
+import { productRateLimiter } from '@/lib/rateLimit';
 
 import prisma from "@/lib/prisma";
 
@@ -10,6 +11,15 @@ export async function POST(req: Request) {
     const session = await getServerSession(authOptions);
     if (!session) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    const ip = req.headers.get('x-forwarded-for') || 'unknown-ip';
+    const rateLimit = productRateLimiter.check(`products_${ip}_${session.user.id}`);
+    if (!rateLimit.success) {
+      return NextResponse.json(
+        { error: 'Terlalu banyak request. Silakan coba lagi nanti.' },
+        { status: 429, headers: { 'Retry-After': rateLimit.reset.getTime().toString() } }
+      );
     }
 
     const data = await req.json();

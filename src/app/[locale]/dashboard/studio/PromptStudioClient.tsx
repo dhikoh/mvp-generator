@@ -123,7 +123,7 @@ export default function PromptStudioClient({ channels, isActive }: { channels: a
       </div>
 
       {tab === 'video' && (
-        <div className="space-y-6">
+        <fieldset disabled={isGenerating} className="space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             
             {/* Dasar */}
@@ -300,7 +300,7 @@ export default function PromptStudioClient({ channels, isActive }: { channels: a
               {isGenerating ? 'Memproses...' : '⚡ Generate Prompt!'}
             </button>
           </div>
-        </div>
+        </fieldset>
       )}
 
       {tab === 'image' && (

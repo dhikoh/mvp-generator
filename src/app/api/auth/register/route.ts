@@ -3,9 +3,19 @@ import { NextResponse } from 'next/server';
 import bcrypt from 'bcrypt';
 
 import prisma from "@/lib/prisma";
+import { authRateLimiter } from '@/lib/rateLimit';
 
 export async function POST(req: Request) {
   try {
+    const ip = req.headers.get('x-forwarded-for') || 'unknown-ip';
+    const rateLimit = authRateLimiter.check(`register_${ip}`);
+    if (!rateLimit.success) {
+      return NextResponse.json(
+        { error: 'Terlalu banyak percobaan pendaftaran. Silakan coba lagi dalam 15 menit.' },
+        { status: 429, headers: { 'Retry-After': rateLimit.reset.getTime().toString() } }
+      );
+    }
+
     const body = await req.json();
     const {
       name, username, email, phoneNumber, password, dateOfBirth,

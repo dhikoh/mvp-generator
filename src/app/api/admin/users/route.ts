@@ -14,7 +14,7 @@ export async function PUT(req: Request) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 403 });
     }
 
-    const { userId, action, role, days, newPassword } = await req.json();
+    const { userId, action, role, days, newPassword, credits } = await req.json();
 
     if (!userId || !action) {
       return NextResponse.json({ error: 'Data tidak lengkap' }, { status: 400 });
@@ -46,6 +46,15 @@ export async function PUT(req: Request) {
       await prisma.user.update({
         where: { id: userId },
         data: { billingActiveUntil: activeUntil }
+      });
+    }
+    else if (action === 'SET_CREDITS') {
+      if (typeof credits !== 'number' || credits < 0) {
+        return NextResponse.json({ error: 'Jumlah credit tidak valid' }, { status: 400 });
+      }
+      await prisma.user.update({
+        where: { id: userId },
+        data: { creditBalance: credits }
       });
     }
     else if (action === 'RESET_PASSWORD') {

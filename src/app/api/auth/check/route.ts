@@ -1,8 +1,19 @@
 import { NextResponse } from 'next/server';
 import prisma from "@/lib/prisma";
+import { authRateLimiter } from '@/lib/rateLimit';
 
 export async function POST(req: Request) {
   try {
+    // Basic IP tracking for rate limiting (fallback to common headers since Next.js Request doesn't have direct req.ip in app router)
+    const ip = req.headers.get('x-forwarded-for') || 'unknown-ip';
+    const rateLimit = authRateLimiter.check(`check_${ip}`);
+    if (!rateLimit.success) {
+      return NextResponse.json(
+        { error: 'Terlalu banyak permintaan. Silakan coba beberapa saat lagi.' },
+        { status: 429, headers: { 'Retry-After': rateLimit.reset.getTime().toString() } }
+      );
+    }
+
     const { username, email, phoneNumber } = await req.json();
 
     if (!username || !email || !phoneNumber) {

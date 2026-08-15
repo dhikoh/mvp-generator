@@ -49,3 +49,7 @@ export class RateLimiter {
 
 // Global instance for general API rate limiting (e.g., 5 requests per minute)
 export const globalRateLimiter = new RateLimiter(5, 60 * 1000);
+
+// Specific limiters for security-sensitive endpoints
+export const authRateLimiter = new RateLimiter(5, 15 * 60 * 1000); // Max 5 attempts per 15 minutes per IP/Identifier for Auth
+export const productRateLimiter = new RateLimiter(10, 60 * 1000); // Max 10 requests per minute for Product Creation

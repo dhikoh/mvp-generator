@@ -4,6 +4,7 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/authOptions';
 
 import prisma from "@/lib/prisma";
+import { enforceChannelLimits } from '@/lib/channelLockLogic';
 
 export async function POST(req: Request) {
   try {
@@ -27,12 +28,28 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Channel tidak ditemukan atau bukan milik Anda' }, { status: 404 });
     }
 
-    if (channel.isLocked) {
-      return NextResponse.json({ error: 'Channel terkunci' }, { status: 403 });
+    // Pengecekan On-The-Fly: Kadaluarsa Langganan
+    const isSuperadmin = channel.user.role === 'SUPERADMIN';
+    if (!isSuperadmin) {
+      const isExpired = !channel.user.billingActiveUntil || new Date(channel.user.billingActiveUntil) < new Date();
+      if (isExpired) {
+        // Panggil lock logic untuk men-downgrade limit channel secara background
+        await enforceChannelLimits(session.user.id);
+        
+        // Refresh status channel setelah dipaksa lock
+        const refreshedChannel = await prisma.profileChannel.findUnique({ where: { id: data.channelId } });
+        if (refreshedChannel?.isLocked) {
+           return NextResponse.json({ error: 'Masa berlangganan habis dan channel ini terkunci. Silakan perpanjang langganan.' }, { status: 403 });
+        }
+      }
+
+      if (channel.user.creditBalance <= 0) {
+        return NextResponse.json({ error: 'Credit point Anda habis. Silakan top-up paket berlangganan.' }, { status: 403 });
+      }
     }
 
-    if (channel.user.role !== 'SUPERADMIN' && channel.user.creditBalance <= 0) {
-      return NextResponse.json({ error: 'Credit point Anda habis. Silakan top-up paket berlangganan.' }, { status: 403 });
+    if (channel.isLocked) {
+      return NextResponse.json({ error: 'Channel terkunci' }, { status: 403 });
     }
 
     // Execute transaction to ensure both updates succeed
