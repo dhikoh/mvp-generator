@@ -1,7 +1,8 @@
 import Link from 'next/link';
 import { useTranslations } from 'next-intl';
 
-export default function HomePage({ params: { locale } }: { params: { locale: string } }) {
+export default function HomePage({ params }: { params: Promise<{ locale: string }> }) {
+  const { locale } = await params;
   const t = useTranslations('Index');
 
   return (
