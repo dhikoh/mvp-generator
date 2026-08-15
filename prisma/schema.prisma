@@ -1,0 +1,71 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model User {
+  id            String    @id @default(cuid())
+  name          String
+  username      String    @unique
+  email         String    @unique
+  phoneNumber   String?
+  passwordHash  String
+  dateOfBirth   DateTime?
+  role          Role      @default(USER_DEMO)
+  billingActiveUntil DateTime?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  channels      ProfileChannel[]
+  billings      BillingHistory[]
+}
+
+enum Role {
+  SUPERADMIN
+  USER_DEMO
+  USER_STANDARD
+  USER_PRO
+  USER_ULTRA
+}
+
+model ProfileChannel {
+  id             String   @id @default(cuid())
+  userId         String
+  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  channelName    String
+  niche          String?
+  description    String?
+  cta1           String?
+  cta2           String?
+  visualAesthetic String? // e.g. "realistic", "claymotion"
+  audioBGM       Boolean  @default(true)
+  audioSFX       Boolean  @default(true)
+  audioVO        Boolean  @default(true)
+  socialLinks    Json?    // e.g. { tiktok: "...", ig: "..." }
+  usageCount     Int      @default(0)
+  lastUsedAt     DateTime @default(now())
+  isLocked       Boolean  @default(false)
+  
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+}
+
+model BillingHistory {
+  id             String   @id @default(cuid())
+  userId         String
+  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  amount         Int
+  tier           String   // e.g. "STANDARD", "PRO", "ULTRA"
+  proofUrl       String?
+  status         PaymentStatus @default(PENDING)
+  createdAt      DateTime @default(now())
+}
+
+enum PaymentStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}

@@ -1,0 +1,66 @@
+import { NextAuthOptions } from "next-auth";
+import CredentialsProvider from "next-auth/providers/credentials";
+
+import bcrypt from "bcrypt";
+
+import prisma from "@/lib/prisma";
+
+export const authOptions: NextAuthOptions = {
+  providers: [
+    CredentialsProvider({
+      name: "Credentials",
+      credentials: {
+        identifier: { label: "Username/Email/Phone", type: "text" },
+        password: { label: "Password", type: "password" }
+      },
+      async authorize(credentials) {
+        if (!credentials?.identifier || !credentials?.password) return null;
+
+        const user = await prisma.user.findFirst({
+          where: {
+            OR: [
+              { email: credentials.identifier },
+              { username: credentials.identifier },
+              { phoneNumber: credentials.identifier }
+            ]
+          }
+        });
+
+        if (!user) return null;
+
+        const isPasswordValid = await bcrypt.compare(credentials.password, user.passwordHash);
+        if (!isPasswordValid) return null;
+
+        return {
+          id: user.id,
+          name: user.name,
+          email: user.email,
+          role: user.role
+        };
+      }
+    })
+  ],
+  session: {
+    strategy: "jwt",
+    maxAge: 30 * 24 * 60 * 60,
+  },
+  callbacks: {
+    async jwt({ token, user }) {
+      if (user) {
+        token.role = (user as any).role;
+        token.id = user.id;
+      }
+      return token;
+    },
+    async session({ session, token }) {
+      if (session.user) {
+        (session.user as any).role = token.role;
+        (session.user as any).id = token.id as string;
+      }
+      return session;
+    }
+  },
+  pages: {
+    signIn: '/id/auth',
+  }
+};
